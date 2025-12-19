@@ -1,58 +1,14 @@
-export MSCCLPP_HCA_DEVICES=mlx5_0,mlx5_0,mlx5_0,mlx5_0
-mpirun -np 4 ./test/mscclpp-test/allreduce_test_perf   -b 16 -e 128 -f 2 -n 1000  -w 10 -k 2
-mpirun --bind-to core --map-by socket -np 4 ./test/mscclpp-test/allreduce_test_perf   -b 16 -e 128 -f 2 -n 1000  -w 10 -k 0
+$ cd mscclpp_double/build
+$ export MSCCLPP_HCA_DEVICES=mlx5_0,mlx5_0,mlx5_0,mlx5_0
+$ mpirun -np 4 ./test/mscclpp-test/allreduce_test_perf   -b 16 -e 128 -f 2 -n 1000  -w 10 -k 0
 
-NCCL:
-# Optional: Clear the file before starting
-> res.txt
-
-# 1. INT8 (Char) Test
-echo "========== TEST: INT8 (1 to 128 bytes) ==========" >> res.txt
-./build/all_reduce_perf \
-  -b 1 \
-  -e 128 \
-  -f 2 \
-  -d int8 \
-  -n 1000 \
-  -w 10 \
-  -c 0 \
-  -g 4 >> res.txt
-
-# 2. INT32 (Integer) Test
-echo "" >> res.txt
-echo "========== TEST: INT32 (4 to 128 bytes) ==========" >> res.txt
-./build/all_reduce_perf \
-  -b 4 \
-  -e 128 \
-  -f 2 \
-  -d int32 \
-  -n 1000 \
-  -w 10 \
-  -c 0 \
-  -g 4 >> res.txt
-
-# 3. FLOAT Test
-echo "" >> res.txt
-echo "========== TEST: FLOAT (4 to 128 bytes) ==========" >> res.txt
-./build/all_reduce_perf \
-  -b 4 \
-  -e 128 \
-  -f 2 \
-  -d float \
-  -n 1000 \
-  -w 10 \
-  -c 0 \
-  -g 4 >> res.txt
-
-# 4. DOUBLE Test
-echo "" >> res.txt
-echo "========== TEST: DOUBLE (8 to 128 bytes) ==========" >> res.txt
-./build/all_reduce_perf \
-  -b 8 \
-  -e 128 \
-  -f 2 \
-  -d double \
-  -n 1000 \
-  -w 10 \
-  -c 0 \
-  -g 4 >> res.txt
+Kernel | Min Bytes | In-Place | Out-of-Place | Good Performance
+----------------------------------------------------------------
+0      | 16        | /        |              |
+1      | 16        | /        |              |
+2      | 16        |          | /            | /
+3      | 16        | /        |              |
+4      | 64        | /        |              | /
+5      | 32        | /        |              | /
+6      | 32        |          | /            | /
+7      | !         | /        |              |
