@@ -20,7 +20,7 @@ constexpr size_t THRES_BYTES_PER_BLOCK = 8192;
 // Let it no more than the number of SMs on a GPU
 constexpr size_t MAX_BLOCKS_NUM = 32;
 
-#define ALIGN 4
+#define ALIGN 2 // experiement with this
 
 template <class T>
 using DeviceHandle = mscclpp::DeviceHandle<T>;
@@ -90,13 +90,13 @@ void SendRecvTestColl::initData(const TestArgs& args, std::vector<void*> sendBuf
   if (sendBuff.size() != 1) std::runtime_error("unexpected error");
   MSCCLPP_CUDATHROW(cudaMemset(sendBuff[0], 0, sendCount_ * typeSize_));
 
-  // TODO: The type should not limited to int.
-  std::vector<int> dataHost(std::max(sendCount_, recvCount_), rank);
+  // Changed from int to double
+  std::vector<double> dataHost(std::max(sendCount_, recvCount_), static_cast<double>(rank));
   MSCCLPP_CUDATHROW(cudaMemcpy(sendBuff[0], dataHost.data(), sendCount_ * typeSize_, cudaMemcpyHostToDevice));
 
   int peerRank = (rank - 1 + args.totalRanks) % args.totalRanks;
   for (size_t i = 0; i < recvCount_; i++) {
-    dataHost[i] = peerRank;
+    dataHost[i] = static_cast<double>(peerRank);
   }
 
   std::memcpy(expectedBuff, dataHost.data(), recvCount_ * typeSize_);
@@ -129,20 +129,21 @@ class SendRecvTestEngine : public BaseTestEngine {
  private:
   void* getExpectedBuff() override;
 
-  std::vector<std::shared_ptr<int>> devicePtrs_;
-  std::shared_ptr<int[]> expectedBuff_;
+  std::vector<std::shared_ptr<double>> devicePtrs_;  // Changed from int to double
+  std::shared_ptr<double[]> expectedBuff_;           // Changed from int[] to double[]
   std::vector<mscclpp::MemoryChannel> memoryChannels_;
 };
 
-SendRecvTestEngine::SendRecvTestEngine(const TestArgs& args) : BaseTestEngine(args, "sendrecv") { inPlace_ = false; }
+SendRecvTestEngine::SendRecvTestEngine(const TestArgs& args) : BaseTestEngine(args, "sendrecv") { inPlace_ = true; }
 
 void SendRecvTestEngine::allocateBuffer() {
-  std::shared_ptr<int> sendBuff = mscclpp::GpuBuffer<int>(args_.maxBytes / sizeof(int)).memory();
-  std::shared_ptr<int> recvBuff = mscclpp::GpuBuffer<int>(args_.maxBytes / sizeof(int)).memory();
+  // Changed from int to double
+  std::shared_ptr<double> sendBuff = mscclpp::GpuBuffer<double>(args_.maxBytes / sizeof(double)).memory();
+  std::shared_ptr<double> recvBuff = mscclpp::GpuBuffer<double>(args_.maxBytes / sizeof(double)).memory();
   devicePtrs_.push_back(sendBuff);
   devicePtrs_.push_back(recvBuff);
 
-  expectedBuff_ = std::shared_ptr<int[]>(new int[args_.maxBytes / sizeof(int)]);
+  expectedBuff_ = std::shared_ptr<double[]>(new double[args_.maxBytes / sizeof(double)]);
 }
 
 void SendRecvTestEngine::setupConnections() {

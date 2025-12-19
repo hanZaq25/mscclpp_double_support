@@ -6,7 +6,9 @@ $ make -j$(nproc)
 $ cd mscclpp_double/build
 $ export MSCCLPP_HCA_DEVICES=mlx5_0,mlx5_0,mlx5_0,mlx5_0
 $ mpirun -np 4 ./test/mscclpp-test/allreduce_test_perf   -b 16 -e 128 -f 2 -n 1000  -w 10 -k 0
+$ mpirun --bind-to numa -np 4 ./test/mscclpp-test/sendrecv_test_perf -b 16 -e 128 -f 2 -n 1000 -w 10 -k 0
 
+All Reduce kernels:
 Kernel | Min Bytes | In-Place | Out-of-Place | Good Performance
 ----------------------------------------------------------------
 0      | 16        | /        |              |
@@ -17,3 +19,5 @@ Kernel | Min Bytes | In-Place | Out-of-Place | Good Performance
 5      | 32        | /        |              | /
 6      | 32        |          | /            | /
 7      | !         | /        |              |
+
+P2P: In place, Out of place options (both avilable you choose at a time.)
