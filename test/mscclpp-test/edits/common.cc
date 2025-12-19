@@ -93,6 +93,7 @@ double parseSize(const char* value) {
   return size * units;
 }
 
+// how latency is reported among different GPUs.
 double allreduceTime(int worldSize, double value, int average) {
   double accumulator = value;
 
@@ -116,6 +117,7 @@ double allreduceTime(int worldSize, double value, int average) {
   return accumulator;
 }
 
+// used in getDeviceNumaNode
 const std::string getBusId(int cudaDev) {
   // On most systems, the PCI bus ID comes back as in the 0000:00:00.0
   // format. Still need to allocate proper space in case PCI domain goes
@@ -160,6 +162,7 @@ void validateArgsForDeviceKernel(const std::vector<KernelRestriction>& restricti
 }
 }  // namespace
 
+//This function tells you which CPU socket is closest to a given GPU.
 int getDeviceNumaNode(int cudaDev) {
   std::string busId = getBusId(cudaDev);
   std::string file_str = "/sys/bus/pci/devices/" + busId + "/numa_node";
