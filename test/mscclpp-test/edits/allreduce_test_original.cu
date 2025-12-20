@@ -888,23 +888,23 @@ __global__ void __launch_bounds__(1024)
       int x = 0;
       int y = 0;
       for (int peerIdx = 0; peerIdx < numPeersPerNode / 2; ++peerIdx) {
-        uint2 data0 = memChan.unpackPacket(scratchBaseIndex + 2 * peerIdx * nPkts + idx, flag);
-        uint2 data1 = memChan.unpackPacket(scratchBaseIndex + (2 * peerIdx + 1) * nPkts + idx, flag);
+        uint2 data0 = memChan.unpackPacket(scratchBaseIndex + 2 * peerIdx * nPkts + idx, flag); // even peers
+        uint2 data1 = memChan.unpackPacket(scratchBaseIndex + (2 * peerIdx + 1) * nPkts + idx, flag); // odd peers
         x += (int)data0.x;
         y += (int)data0.y;
         x += (int)data1.x;
         y += (int)data1.y;
       }
       if (numPeersPerNode & 1) {
-        uint2 data = memChan.unpackPacket(scratchBaseIndex + (numPeersPerNode - 1) * nPkts + idx, flag);
+        uint2 data = memChan.unpackPacket(scratchBaseIndex + (numPeersPerNode - 1) * nPkts + idx, flag); // very last peer
         x += (int)data.x;
         y += (int)data.y;
       }
-      if (isSingleNode) {
+      if (isSingleNode) { // finalize: my local + accumlated sum
         res[idx].x = src[idx].x + x;
         res[idx].y = src[idx].y + y;
       } else {
-        putPktPtr[idx].write(src[idx].x + x, src[idx].y + y, flag);
+        putPktPtr[idx].write(src[idx].x + x, src[idx].y + y, flag); // send to the other node in outbox
       }
     }
   }
