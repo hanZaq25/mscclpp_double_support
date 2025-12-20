@@ -904,7 +904,7 @@ __global__ void __launch_bounds__(1024) allreduce1(double* buff, double* scratch
 
 // it is now sending 1 double (64 bit) rather than 2 int (2 x 32 bit).
 // to achieve that using LLPacket: for the road, cast them as long long int so that 64 bit double acts as 2 int.
-// when you reach the destination: back from long long to double for computaiton.
+// when you reach the destination: back from long long to double for computation.
 __global__ void __launch_bounds__(1024)
     allreduce2(double* buff, void* scratch, void* putPktBuf, void* getPktBuf, void* result, int rank, int nRanksPerNode,
                int worldSize, size_t nelems) {
