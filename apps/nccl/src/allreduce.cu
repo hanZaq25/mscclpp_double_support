@@ -196,6 +196,8 @@ AllreduceFunc dispatch(ncclRedOp_t op, mscclpp::DataType dtype) {
     } else if (dtype == mscclpp::DataType::BFLOAT16) {
       return Adapter<SUM, __bfloat16>::call;
 #endif
+    } else if (dtype == mscclpp::DataType::FLOAT64) {
+      return Adapter<SUM, double>::call;
 #if defined(__FP8_TYPES_EXIST__)
     } else if (dtype == mscclpp::DataType::FP8_E4M3) {
       return Adapter<SUM, __fp8_e4m3>::call;
@@ -216,6 +218,8 @@ AllreduceFunc dispatch(ncclRedOp_t op, mscclpp::DataType dtype) {
     } else if (dtype == mscclpp::DataType::BFLOAT16) {
       return Adapter<MIN, __bfloat16>::call;
 #endif
+    } else if (dtype == mscclpp::DataType::FLOAT64) {
+      return Adapter<MIN, double>::call;
 #if defined(__FP8_TYPES_EXIST__)
     } else if (dtype == mscclpp::DataType::FP8_E4M3) {
       return Adapter<MIN, __fp8_e4m3>::call;
