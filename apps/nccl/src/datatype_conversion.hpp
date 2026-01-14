@@ -22,6 +22,8 @@ inline mscclpp::DataType ncclDataTypeToMscclpp(ncclDataType_t dtype) {
       return mscclpp::DataType::FLOAT32;
     case ncclBfloat16:
       return mscclpp::DataType::BFLOAT16;
+    case ncclFloat64:                            
+      return mscclpp::DataType::FLOAT64; 
 #ifdef __FP8_TYPES_EXIST__
     case ncclFloat8e4m3:
       return mscclpp::DataType::FP8_E4M3;
@@ -46,6 +48,8 @@ inline size_t getDataTypeSize(mscclpp::DataType dtype) {
     case mscclpp::DataType::UINT32:
     case mscclpp::DataType::FLOAT32:
       return 4;
+    case mscclpp::DataType::FLOAT64:           
+      return 8;
     default:
       return 0;
   }
