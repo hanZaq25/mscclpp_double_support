@@ -66,6 +66,7 @@ enum class DataType {
   FLOAT16,   // IEEE 754 half precision.
   FLOAT32,   // IEEE 754 single precision.
   BFLOAT16,  // bfloat16 precision.
+  FLOAT64,   // IEEE 754 double precision.
   FP8_E4M3,  // FP8 with E4M3 layout.
   FP8_E5M2,  // FP8 with E5M2 layout.
 };
