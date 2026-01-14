@@ -442,6 +442,7 @@ __forceinline__ __device__ DataType cal_vectors(DataType a, DataType b) {
   using CompType = typename std::conditional_t<
       std::is_same_v<T, __half>, __half2,
       std::conditional_t<std::is_same_v<T, __bfloat16>, __bfloat162,
+      std::conditional_t<std::is_same_v<T, double>, double,
 #if defined(__FP8_TYPES_EXIST__)
                          std::conditional_t<std::is_same_v<T, __fp8_e4m3>, __fp8x4_e4m3,
                                             std::conditional_t<std::is_same_v<T, __fp8_e5m2>, __fp8x4_e5m2,
