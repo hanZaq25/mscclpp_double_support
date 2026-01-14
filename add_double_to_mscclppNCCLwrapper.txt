@@ -1,0 +1,12 @@
+related files to change:
+nccl.h
+nccl.cu
+nccl/src/allreduce.hpp
+nccl/src/allreduce.cu
+data_type_conversion.hpp 
+gpu_data_types.hpp
+exectuion_kernel.hpp
+exectuion_kernel.cu
+
+nothing to change about:
+switch_channel_device.hpp

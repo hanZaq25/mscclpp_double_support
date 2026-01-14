@@ -1,0 +1,18 @@
+mkdir build
+cd build 
+
+# Add both the HPC compilers and the CUDA binaries to your PATH
+export PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/bin:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/12.2/bin:$PATH
+
+# Add CUDA and HPC compiler runtime libraries to your LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/12.2/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/lib:$LD_LIBRARY_PATH
+
+# Inside the build directory
+cmake -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=$HOME/.local \
+  -DCUDAToolkit_ROOT=/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/12.2 \
+  ..
+
+# Compile and install
+make -j$(nproc)
+make install
