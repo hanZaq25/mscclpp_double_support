@@ -200,6 +200,22 @@ MSCCLPP_DEVICE_INLINE int4 add_vectors<__bfloat16>(int4 a, int4 b) {
   return add_vectors_helper<__bfloat162>(a, b);
 }
 
+template <>
+MSCCLPP_DEVICE_INLINE int4 add_vectors<double>(int4 a, int4 b) {
+  // int4 (16 bytes) = 2 doubles (8 bytes each)
+  // We'll process as two separate double operations
+  double2* a_ptr = reinterpret_cast<double2*>(&a);
+  double2* b_ptr = reinterpret_cast<double2*>(&b);
+  
+  int4 ret;
+  double2* ret_ptr = reinterpret_cast<double2*>(&ret);
+  
+  ret_ptr->x = a_ptr->x + b_ptr->x;
+  ret_ptr->y = a_ptr->y + b_ptr->y;
+  
+  return ret;
+}
+
 #if defined(__FP8_TYPES_EXIST__)
 template <>
 MSCCLPP_DEVICE_INLINE int4 add_vectors<__fp8_e4m3>(int4 a, int4 b) {
@@ -253,6 +269,19 @@ MSCCLPP_DEVICE_INLINE __attribute__((unused)) uint2 add_vectors<__half>(uint2 a,
 template <>
 MSCCLPP_DEVICE_INLINE __attribute__((unused)) uint2 add_vectors<__bfloat16>(uint2 a, uint2 b) {
   return add_vectors_helper<__bfloat162>(a, b);
+}
+
+template <>
+MSCCLPP_DEVICE_INLINE __attribute__((unused)) uint2 add_vectors<double>(uint2 a, uint2 b) {
+  // uint2 (8 bytes) = 1 double
+  double* a_ptr = reinterpret_cast<double*>(&a);
+  double* b_ptr = reinterpret_cast<double*>(&b);
+  
+  uint2 ret;
+  double* ret_ptr = reinterpret_cast<double*>(&ret);
+  *ret_ptr = *a_ptr + *b_ptr;
+  
+  return ret;
 }
 
 #if defined(__FP8_TYPES_EXIST__)
