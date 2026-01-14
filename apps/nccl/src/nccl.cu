@@ -290,6 +290,7 @@ static mscclpp::Algorithm algoSelector(
   }
   static const bool mscclppDisableChannelCache = mscclpp::env()->disableChannelCache;
   static const bool isNvlsSupported = mscclpp::isNvlsSupported();
+  bool isTypeTooBigForNvls = (dtype == mscclpp::DataType::FLOAT64);
   static const std::pair<int, int> deviceComputeCapability = getDeviceComputeCapability();
   bool isCuMemMapAllocated =
       mscclpp::isCuMemMapAllocated(const_cast<void*>(input)) && mscclpp::isCuMemMapAllocated(output);
@@ -308,7 +309,7 @@ static mscclpp::Algorithm algoSelector(
     }
   }
   if (collective == "allreduce") {
-    bool useNvls = isNvlsSupported;
+    bool useNvls = isNvlsSupported && !isTypeTooBigForNvls; 
     bool isFp8 = dtype == mscclpp::DataType::FP8_E4M3 || dtype == mscclpp::DataType::FP8_E5M2;
 #if !defined(__HIP_PLATFORM_AMD__)
     if (isFp8 && deviceComputeCapability.first < 10) {

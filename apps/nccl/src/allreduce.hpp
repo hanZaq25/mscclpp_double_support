@@ -363,6 +363,76 @@ template <typename T, Op OpType>
 __forceinline__ __device__ int cal_vectors_helper(int a, int b) {
   return bit_cast<int, T>(cal_elements<T, OpType>(bit_cast<T, int>(a), bit_cast<T, int>(b)));
 }
+// Specialization for double with int4 (int4 = 16 bytes = 2 doubles)
+template <>
+__forceinline__ __device__ int4 cal_vectors_helper<double, SUM>(int4 a, int4 b) {
+  double2* a_ptr = reinterpret_cast<double2*>(&a);
+  double2* b_ptr = reinterpret_cast<double2*>(&b);
+  
+  int4 ret;
+  double2* ret_ptr = reinterpret_cast<double2*>(&ret);
+  
+  ret_ptr->x = a_ptr->x + b_ptr->x;
+  ret_ptr->y = a_ptr->y + b_ptr->y;
+  
+  return ret;
+}
+
+template <>
+__forceinline__ __device__ int4 cal_vectors_helper<double, MIN>(int4 a, int4 b) {
+  double2* a_ptr = reinterpret_cast<double2*>(&a);
+  double2* b_ptr = reinterpret_cast<double2*>(&b);
+  
+  int4 ret;
+  double2* ret_ptr = reinterpret_cast<double2*>(&ret);
+  
+  ret_ptr->x = min_elements(a_ptr->x, b_ptr->x);
+  ret_ptr->y = min_elements(a_ptr->y, b_ptr->y);
+  
+  return ret;
+}
+
+// Specialization for double with uint2 (uint2 = 8 bytes = 1 double)
+template <>
+__forceinline__ __device__ uint2 cal_vectors_helper<double, SUM>(uint2 a, uint2 b) {
+  double* a_ptr = reinterpret_cast<double*>(&a);
+  double* b_ptr = reinterpret_cast<double*>(&b);
+  
+  uint2 ret;
+  double* ret_ptr = reinterpret_cast<double*>(&ret);
+  
+  *ret_ptr = *a_ptr + *b_ptr;
+  
+  return ret;
+}
+
+template <>
+__forceinline__ __device__ uint2 cal_vectors_helper<double, MIN>(uint2 a, uint2 b) {
+  double* a_ptr = reinterpret_cast<double*>(&a);
+  double* b_ptr = reinterpret_cast<double*>(&b);
+  
+  uint2 ret;
+  double* ret_ptr = reinterpret_cast<double*>(&ret);
+  
+  *ret_ptr = min_elements(*a_ptr, *b_ptr);
+  
+  return ret;
+}
+
+// Specialization for double with int (this won't work - assert instead)
+template <>
+__forceinline__ __device__ int cal_vectors_helper<double, SUM>(int a, int b) {
+  // Cannot fit a double (8 bytes) into an int (4 bytes)
+  assert(false && "Cannot use int type with double - size mismatch");
+  return 0;
+}
+
+template <>
+__forceinline__ __device__ int cal_vectors_helper<double, MIN>(int a, int b) {
+  // Cannot fit a double (8 bytes) into an int (4 bytes)
+  assert(false && "Cannot use int type with double - size mismatch");
+  return 0;
+}
 
 #if defined(__HIP_PLATFORM_AMD__) && defined(__FP8_TYPES_EXIST__) && defined(__gfx942__)
 // Helper function to perform FP8 vector addition - dispatches based on scalar type
@@ -442,7 +512,6 @@ __forceinline__ __device__ DataType cal_vectors(DataType a, DataType b) {
   using CompType = typename std::conditional_t<
       std::is_same_v<T, __half>, __half2,
       std::conditional_t<std::is_same_v<T, __bfloat16>, __bfloat162,
-      std::conditional_t<std::is_same_v<T, double>, double,
 #if defined(__FP8_TYPES_EXIST__)
                          std::conditional_t<std::is_same_v<T, __fp8_e4m3>, __fp8x4_e4m3,
                                             std::conditional_t<std::is_same_v<T, __fp8_e5m2>, __fp8x4_e5m2,
@@ -542,11 +611,15 @@ __global__ void __launch_bounds__(1024, 1)
                             &event_buffer_head);
 #endif
 
-  if (sizeof(T) == 2 || sizeof(T) == 1)
+if constexpr (sizeof(T) == 2 || sizeof(T) == 1) {
     nelems = (nelems * sizeof(T) + sizeof(T)) / sizeof(int);
-  else
+  } else if constexpr (sizeof(T) > sizeof(int)) {
+    // For types larger than int (like double: 8 bytes)
+    nelems = nelems * (sizeof(T) / sizeof(int));
+  } else {
+    // For types equal to int size (like float: 4 bytes)
     nelems = nelems / (sizeof(int) / sizeof(T));
-
+  }
   const int nPeers = nRanksPerNode - 1;
   const size_t nPkts = nelems / 2;
 
@@ -781,9 +854,22 @@ MSCCLPP_DEVICE_INLINE constexpr std::size_t calcVectorSize() {
   }
 }
 
+// Version 1: For double - does nothing
 template <typename T>
-MSCCLPP_DEVICE_INLINE void handleMultiLoadReduceStore(T* src, T* dst, size_t srcOffset, size_t dstOffset, size_t size,
-                                                      int tid, int nThreads) {
+MSCCLPP_DEVICE_INLINE 
+typename std::enable_if<std::is_same_v<T, double>, void>::type
+handleMultiLoadReduceStore(T* src, T* dst, size_t srcOffset, size_t dstOffset, size_t size,
+                          int tid, int nThreads) {
+  // NVLS does not support double - this function does nothing
+  return;
+}
+
+// Version 2: For all other types - does the actual work
+template <typename T>
+MSCCLPP_DEVICE_INLINE 
+typename std::enable_if<!std::is_same_v<T, double>, void>::type
+handleMultiLoadReduceStore(T* src, T* dst, size_t srcOffset, size_t dstOffset, size_t size,
+                          int tid, int nThreads) {
   // nvls can only handle 4 bytes alignment
   MSCCLPP_ASSERT_DEVICE(size % 4 == 0, "size must be 4 bytes aligned");
   constexpr size_t nElem = calcVectorSize<T>();
@@ -797,15 +883,17 @@ MSCCLPP_DEVICE_INLINE void handleMultiLoadReduceStore(T* src, T* dst, size_t src
     auto val = mscclpp::SwitchChannelDeviceHandle::multimemLoadReduce(src4 + srcOffset4 + idx);
     mscclpp::SwitchChannelDeviceHandle::multimemStore(val, dst4 + dstOffset4 + idx);
   }
-  // handle rest of data
+  // handle rest of data - only for types 4 bytes or smaller
   size_t processed = nVec * sizeof(vectorType);
-  constexpr size_t nRestElem = 4 / sizeof(T);
-  using restVectorType = mscclpp::VectorType<T, nRestElem>;
-  const size_t startIdx = (srcOffset + processed) / sizeof(restVectorType);
-  const size_t endIdx = (srcOffset + size) / sizeof(restVectorType);
-  for (size_t idx = tid + startIdx; idx < endIdx; idx += nThreads) {
-    auto val = mscclpp::SwitchChannelDeviceHandle::multimemLoadReduce((restVectorType*)src + idx);
-    mscclpp::SwitchChannelDeviceHandle::multimemStore(val, (restVectorType*)dst + idx);
+  if constexpr (sizeof(T) <= 4) {
+    constexpr size_t nRestElem = 4 / sizeof(T);
+    using restVectorType = mscclpp::VectorType<T, nRestElem>;
+    const size_t startIdx = (srcOffset + processed) / sizeof(restVectorType);
+    const size_t endIdx = (srcOffset + size) / sizeof(restVectorType);
+    for (size_t idx = tid + startIdx; idx < endIdx; idx += nThreads) {
+      auto val = mscclpp::SwitchChannelDeviceHandle::multimemLoadReduce((restVectorType*)src + idx);
+      mscclpp::SwitchChannelDeviceHandle::multimemStore(val, (restVectorType*)dst + idx);
+    }
   }
 }
 #endif
@@ -818,6 +906,11 @@ __global__ void __launch_bounds__(1024, 1)
                [[maybe_unused]] size_t channelInOffset, [[maybe_unused]] size_t channelOutOffset,
                [[maybe_unused]] size_t size, [[maybe_unused]] int rank, [[maybe_unused]] int nRanksPerNode) {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 900
+  // NVLS does not support double
+  if constexpr (std::is_same_v<T, double>) {
+    return;
+  }
+  
   int nPeers = nRanksPerNode - 1;
   int nBlocks = gridDim.x;
   int bid = blockIdx.x;
@@ -861,6 +954,10 @@ __global__ void __launch_bounds__(1024, 1)
                 [[maybe_unused]] size_t scratchBufferSize, [[maybe_unused]] int rank,
                 [[maybe_unused]] int nRanksPerNode) {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 900
+  // NVLS does not support double
+  if constexpr (std::is_same_v<T, double>) {
+    return;
+  }
   constexpr int alignment = 16;
   int nPeers = nRanksPerNode - 1;
   int nBlocks = gridDim.x;
@@ -958,6 +1055,10 @@ __global__ void __launch_bounds__(1024, 1)
                 [[maybe_unused]] size_t size, [[maybe_unused]] size_t scratchBufferSize, [[maybe_unused]] int rank,
                 [[maybe_unused]] int nRanksPerNode) {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 900
+  // NVLS does not support double
+  if constexpr (std::is_same_v<T, double>) {
+    return;
+  }
   constexpr int alignment = 16;
   int nPeers = nRanksPerNode - 1;
   int nBlocksForCopy = nRanksPerNode * 2;
@@ -1090,10 +1191,19 @@ __global__ void __launch_bounds__(1024, 1)
                         [[maybe_unused]] int rank, [[maybe_unused]] int worldSize,
                         [[maybe_unused]] uint32_t* deviceFlag) {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 900
+  // NVLS does not support double
+  if constexpr (std::is_same_v<T, double>) {
+    return;
+  }
   uint32_t flag = deviceFlag[blockIdx.x];
   size_t scratchBaseOffset = (flag % 2) ? scratchBufferSize / 2 : 0;
   uint32_t tid = threadIdx.x + blockIdx.x * blockDim.x;
-  uint32_t nPktPerRank = nelems / worldSize / (sizeof(mscclpp::LL8Packet::Payload) / sizeof(T));
+  uint32_t nPktPerRank;
+  if constexpr (sizeof(T) <= sizeof(mscclpp::LL8Packet::Payload)) {
+    nPktPerRank = nelems / worldSize / (sizeof(mscclpp::LL8Packet::Payload) / sizeof(T));
+  } else {
+    nPktPerRank = nelems / worldSize * (sizeof(T) / sizeof(mscclpp::LL8Packet::Payload));
+  }
   mscclpp::LL8Packet* multiPkt =
       (mscclpp::LL8Packet*)((char*)multicast->mcPtr + scratchBaseOffset) + rank * worldSize * nPktPerRank;
   uint* src = (uint*)(input);

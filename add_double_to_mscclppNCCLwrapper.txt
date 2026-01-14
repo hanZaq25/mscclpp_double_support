@@ -10,3 +10,8 @@ exectuion_kernel.cu
 
 nothing to change about:
 switch_channel_device.hpp
+__________________________
+✅ Enum already exists in nccl.h
+✅ Generic templates handle most logic
+✅ Just need dispatch/switch cases
+✅ One vectorization helper for int4/uint2
