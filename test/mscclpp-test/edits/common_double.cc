@@ -353,15 +353,15 @@ size_t BaseTestEngine::checkData() {
   void* expectedBuff = this->getExpectedBuff();
 
   size_t recvBytes = this->coll_->getRecvBytes();
-  // // Changed int to ElementType (double)
-  // std::vector<ElementType> recvData(recvBytes / sizeof(ElementType), 0);
-  // CUDATHROW(cudaMemcpy(recvData.data(), recvBuff, recvBytes, cudaMemcpyDeviceToHost));
-  // for (size_t i = 0; i < recvData.size(); i++) {
-  //   // Changed cast to ElementType*
-  //   if (recvData[i] != ((ElementType*)expectedBuff)[i]) {
-  //     nErrors++;
-  //   }
-  // }
+  // Changed int to ElementType (double)
+  std::vector<ElementType> recvData(recvBytes / sizeof(ElementType), 0);
+  CUDATHROW(cudaMemcpy(recvData.data(), recvBuff, recvBytes, cudaMemcpyDeviceToHost));
+  for (size_t i = 0; i < recvData.size(); i++) {
+    // Changed cast to ElementType*
+    if (recvData[i] != ((ElementType*)expectedBuff)[i]) {
+      nErrors++;
+    }
+  }
   // Replace integer-based copy and exact equality with a double vector and tolerant comparison
   std::vector<double> recvData(recvBytes / sizeof(double));
   CUDATHROW(cudaMemcpy(recvData.data(), recvBuff, recvBytes, cudaMemcpyDeviceToHost));

@@ -1,0 +1,59 @@
+Starting AllReduce sweep for k = 0..7
+----------------------------------------
+Running k = 0
+----------------------------------------
+# minBytes 16 maxBytes 1024 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 0
+#
+# Using devices
+#  Rank  0 Pid  22956 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid  22957 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid  22958 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid  22959 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+#
+#                                        in-place                       out-of-place
+#       size         count     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong
+#        (B)    (elements)     (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)
+          16             2    437.5    0.00    0.00      0
+          32             4    449.4    0.00    0.00      0
+          64             8    450.4    0.00    0.00      0
+         128            16    450.8    0.00    0.00      0
+❌ ERROR: k = 0 exited with code 1
+----------------------------------------
+Running k = 1
+----------------------------------------
+# minBytes 16 maxBytes 1024 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 1
+#
+# Using devices
+#  Rank  0 Pid  23117 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid  23118 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid  23119 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid  23120 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+❌ ERROR: k = 1 exited with code 1
+----------------------------------------
+Running k = 2
+----------------------------------------
+❌ ERROR: k = 2 exited with code 1
+----------------------------------------
+Running k = 3
+----------------------------------------
+❌ ERROR: k = 3 exited with code 1
+----------------------------------------
+Running k = 4
+----------------------------------------
+❌ ERROR: k = 4 exited with code 1
+----------------------------------------
+Running k = 5
+----------------------------------------
+❌ ERROR: k = 5 exited with code 1
+----------------------------------------
+Running k = 6
+----------------------------------------
+❌ ERROR: k = 6 exited with code 1
+----------------------------------------
+Running k = 7
+----------------------------------------
+❌ ERROR: k = 7 exited with code 1
+All runs completed.

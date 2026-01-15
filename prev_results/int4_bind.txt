@@ -1,0 +1,135 @@
+# minBytes 16 maxBytes 128 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 0
+#
+# Using devices
+#  Rank  0 Pid 3338913 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3338914 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3338915 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3338916 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+#
+#                                        in-place                       out-of-place
+#       size         count     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong
+#        (B)    (elements)     (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)
+          16             4    444.9    0.00    0.00      0
+          32             8    444.6    0.00    0.00      0
+          64            16    445.9    0.00    0.00      0
+         128            32    445.3    0.00    0.00      0
+
+# Out of bounds values : 0 OK
+#
+# minBytes 16 maxBytes 128 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 1
+#
+# Using devices
+#  Rank  0 Pid 3339066 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3339067 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3339068 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3339069 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+#
+#                                        in-place                       out-of-place
+#       size         count     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong
+#        (B)    (elements)     (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)
+          16             4    463.0    0.00    0.00      0
+          32             8    759.0    0.00    0.00      0
+          64            16    759.0    0.00    0.00      0
+         128            32    759.8    0.00    0.00      0
+
+# Out of bounds values : 0 OK
+#
+# minBytes 16 maxBytes 128 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 2
+#
+# Using devices
+#  Rank  0 Pid 3339239 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3339240 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3339241 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3339242 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+#
+#                                        in-place                       out-of-place
+#       size         count     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong
+#        (B)    (elements)     (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)
+          16             4                                      5.05    0.00    0.00      0
+          32             8                                      4.93    0.01    0.01      0
+          64            16                                      4.83    0.01    0.02      0
+         128            32                                      4.36    0.03    0.04      0
+
+# Out of bounds values : 0 OK
+#
+# minBytes 16 maxBytes 128 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 3
+#
+# Using devices
+#  Rank  0 Pid 3339327 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3339328 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3339329 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3339330 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+#
+#                                        in-place                       out-of-place
+#       size         count     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong
+#        (B)    (elements)     (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)
+          16             4    297.5    0.00    0.00      0
+          32             8    297.2    0.00    0.00      0
+          64            16    297.4    0.00    0.00      0
+         128            32    297.7    0.00    0.00      0
+
+# Out of bounds values : 0 OK
+#
+# minBytes 16 maxBytes 128 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 4
+#
+# Using devices
+#  Rank  0 Pid 3339434 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3339435 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3339436 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3339437 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+# minBytes 16 maxBytes 128 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 5
+#
+# Using devices
+#  Rank  0 Pid 3339523 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3339524 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3339525 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3339526 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+# minBytes 16 maxBytes 128 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 6
+#
+# Using devices
+#  Rank  0 Pid 3340197 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3340198 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3340199 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3340200 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+#
+#                                        in-place                       out-of-place
+#       size         count     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong
+#        (B)    (elements)     (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)
+          16             4                                      2.38    0.01    0.01     16
+          32             8                                      5.37    0.01    0.01      0
+          64            16                                      5.52    0.01    0.02      0
+         128            32                                      4.93    0.03    0.04      0
+
+# Out of bounds values : 4 FAILED
+#
+# minBytes 16 maxBytes 128 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 7
+#
+# Using devices
+#  Rank  0 Pid 3340299 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3340300 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3340301 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3340302 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++

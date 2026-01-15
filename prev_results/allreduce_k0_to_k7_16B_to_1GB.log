@@ -1,0 +1,70 @@
+Starting AllReduce sweep for k = 0..7
+Log file: allreduce_k0_to_k7_16B_to_1GB.log
+----------------------------------------
+Running k = 0
+----------------------------------------
+# minBytes 16 maxBytes 1073741824 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 0
+#
+# Using devices
+#  Rank  0 Pid 3095141 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3095142 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3095143 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3095144 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+#
+#                                        in-place                       out-of-place
+#       size         count     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong
+#        (B)    (elements)     (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)
+          16             4    446.2    0.00    0.00      0
+          32             8    448.1    0.00    0.00      0
+          64            16    449.2    0.00    0.00      0
+         128            32    448.9    0.00    0.00      0
+         256            64    448.8    0.00    0.00      0
+         512           128    448.0    0.00    0.00      0
+        1024           256    448.4    0.00    0.00      0
+        2048           512    448.2    0.00    0.01      0
+        4096          1024    448.6    0.01    0.01      0
+        8192          2048    449.4    0.02    0.03      0
+       16384          4096    450.0    0.04    0.05      0
+       32768          8192    448.5    0.07    0.11      0
+       65536         16384    449.1    0.15    0.22      0
+      131072         32768    451.2    0.29    0.44      0
+      262144         65536    453.7    0.58    0.87      0
+      524288        131072    458.6    1.14    1.71      0
+     1048576        262144    467.7    2.24    3.36      0
+     2097152        524288    486.7    4.31    6.46      0
+     4194304       1048576    526.7    7.96   11.95      0
+     8388608       2097152    611.5   13.72   20.58      0
+    16777216       4194304    859.5   19.52   29.28      0
+    33554432       8388608   1957.8   17.14   25.71      0
+    67108864      16777216   3869.4   17.34   26.02      0
+   134217728      33554432   7538.2   17.80   26.71      0
+   268435456      67108864    14802   18.14   27.20      0
+❌ ERROR: k = 0 exited with code 1 — skipping to next k
+----------------------------------------
+Running k = 1
+----------------------------------------
+# minBytes 16 maxBytes 1073741824 step: 2(factor) warmup iters: 10 iters: 1000 validation: 1 graph: 15 kernel num: 1
+#
+# Using devices
+#  Rank  0 Pid 3095472 on       du04 device  0 [0000:01:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  1 Pid 3095473 on       du04 device  1 [0000:41:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  2 Pid 3095474 on       du04 device  2 [0000:81:00.0] NVIDIA A100-SXM4-40GB
+#  Rank  3 Pid 3095475 on       du04 device  3 [0000:C1:00.0] NVIDIA A100-SXM4-40GB
+#
+# Initializing MSCCL++
+# Setting up the connection in MSCCL++
+#
+#                                        in-place                       out-of-place
+#       size         count     time   algbw   busbw  #wrong     time   algbw   busbw  #wrong
+#        (B)    (elements)     (us)  (GB/s)  (GB/s)             (us)  (GB/s)  (GB/s)
+          16             4    467.9    0.00    0.00      0
+          32             8    768.9    0.00    0.00      0
+          64            16    769.0    0.00    0.00      0
+         128            32    769.0    0.00    0.00      0
+         256            64    771.0    0.00    0.00      0
+         512           128    772.5    0.00    0.00      0
+        1024           256    770.0    0.00    0.00      0
+        2048           512    769.4    0.00    0.00      0

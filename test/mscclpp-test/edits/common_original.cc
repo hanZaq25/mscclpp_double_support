@@ -39,20 +39,17 @@ mscclpp::Transport IBs[] = {mscclpp::Transport::IB0, mscclpp::Transport::IB1, ms
 
 namespace {
 
-// Define the type to be tested
-using ElementType = double;
-
 // Command line parameter defaults
-size_t minBytes = 16; //32 * 1024 * 1024;
-size_t maxBytes = 128; //32 * 1024 * 1024;
-size_t stepBytes =2; //1 * 1024 * 1024;
-size_t stepFactor = 2;
+size_t minBytes = 32 * 1024 * 1024;
+size_t maxBytes = 32 * 1024 * 1024;
+size_t stepBytes = 1 * 1024 * 1024;
+size_t stepFactor = 1;
 int datacheck = 1;
 int warmup_iters = 10;
-int iters = 1000;
+int iters = 20;
 // Report average iteration time: (0=RANK0,1=AVG,2=MIN,3=MAX)
 int average = 1;
-int kernel_num = 2; //0;
+int kernel_num = 0;
 int cudaGraphLaunches = 15;
 std::string output_file;
 
@@ -130,7 +127,7 @@ const std::string getBusId(int cudaDev) {
 }
 
 void validateArgsForDeviceKernel(const std::vector<KernelRestriction>& restrictions, int kernelNum, size_t paramCount,
-                                 int worldSize, int nRanksPerNode, int typeSize = sizeof(ElementType)) {
+                                 int worldSize, int nRanksPerNode, int typeSize = 4) {
   auto iter = std::find_if(restrictions.begin(), restrictions.end(), [kernelNum](const KernelRestriction& restriction) {
     return restriction.kernelNum == kernelNum;
   });
@@ -197,8 +194,7 @@ BaseTestEngine::~BaseTestEngine() { (void)cudaStreamDestroy(stream_); }
 
 void BaseTestColl::setupCollTest(const TestArgs& args, size_t size) {
   this->worldSize_ = args.totalRanks;
-  // Change typeSize to double
-  this->typeSize_ = sizeof(ElementType);
+  this->typeSize_ = sizeof(int);
   this->kernelNum_ = args.kernelNum;
   this->setupCollTest(size);
 }
@@ -236,8 +232,8 @@ void BaseTestEngine::runTest() {
   // warm-up for large size
   this->coll_->setupCollTest(args_, args_.maxBytes);
   this->barrier();
-  validateArgsForDeviceKernel(coll_->getKernelRestrictions(), args_.kernelNum, coll_->getParamBytes() / sizeof(ElementType),
-                              args_.totalRanks, args_.nRanksPerNode, sizeof(ElementType));
+  validateArgsForDeviceKernel(coll_->getKernelRestrictions(), args_.kernelNum, coll_->getParamBytes() / sizeof(int),
+                              args_.totalRanks, args_.nRanksPerNode);
   for (int iter = 0; iter < warmup_iters; iter++) {
     this->coll_->runColl(args_, stream_);
   }
@@ -246,8 +242,8 @@ void BaseTestEngine::runTest() {
   // warm-up for small size
   this->coll_->setupCollTest(args_, args_.minBytes);
   this->barrier();
-  validateArgsForDeviceKernel(coll_->getKernelRestrictions(), args_.kernelNum, coll_->getParamBytes() / sizeof(ElementType),
-                              args_.totalRanks, args_.nRanksPerNode, sizeof(ElementType));
+  validateArgsForDeviceKernel(coll_->getKernelRestrictions(), args_.kernelNum, coll_->getParamBytes() / sizeof(int),
+                              args_.totalRanks, args_.nRanksPerNode);
   for (int iter = 0; iter < warmup_iters; iter++) {
     this->coll_->runColl(args_, stream_);
   }
@@ -269,10 +265,10 @@ void BaseTestEngine::runTest() {
     this->coll_->initData(this->args_, this->getSendBuff(), this->getExpectedBuff());
 
     ss << std::setw(12) << std::max(coll_->getSendBytes(), coll_->getExpectedBytes()) << "  " << std::setw(12)
-       << coll_->getParamBytes() / sizeof(ElementType);
+       << coll_->getParamBytes() / sizeof(int);
 
-    validateArgsForDeviceKernel(coll_->getKernelRestrictions(), args_.kernelNum, coll_->getParamBytes() / sizeof(ElementType),
-                                args_.totalRanks, args_.nRanksPerNode, sizeof(ElementType));
+    validateArgsForDeviceKernel(coll_->getKernelRestrictions(), args_.kernelNum, coll_->getParamBytes() / sizeof(int),
+                                args_.totalRanks, args_.nRanksPerNode);
     double deltaSec = benchTime();
 
     size_t nErrors = 0;
@@ -353,27 +349,13 @@ size_t BaseTestEngine::checkData() {
   void* expectedBuff = this->getExpectedBuff();
 
   size_t recvBytes = this->coll_->getRecvBytes();
-  // // Changed int to ElementType (double)
-  // std::vector<ElementType> recvData(recvBytes / sizeof(ElementType), 0);
-  // CUDATHROW(cudaMemcpy(recvData.data(), recvBuff, recvBytes, cudaMemcpyDeviceToHost));
-  // for (size_t i = 0; i < recvData.size(); i++) {
-  //   // Changed cast to ElementType*
-  //   if (recvData[i] != ((ElementType*)expectedBuff)[i]) {
-  //     nErrors++;
-  //   }
-  // }
-  // Replace integer-based copy and exact equality with a double vector and tolerant comparison
-  std::vector<double> recvData(recvBytes / sizeof(double));
+  std::vector<int> recvData(recvBytes / sizeof(int), 0);
   CUDATHROW(cudaMemcpy(recvData.data(), recvBuff, recvBytes, cudaMemcpyDeviceToHost));
-  for (size_t i = 0; i < recvData.size(); ++i) {
-    double expected = ((double*)expectedBuff)[i];
-    double got = recvData[i];
-    // choose epsilon appropriate for your init/scale
-    double eps = 1e-9;
-    if (!(std::isfinite(got) && std::isfinite(expected)) || std::fabs(got - expected) > eps) {
+  for (size_t i = 0; i < recvData.size(); i++) {
+    if (recvData[i] != ((int*)expectedBuff)[i]) {
       nErrors++;
     }
-}
+  }
   return nErrors;
 }
 

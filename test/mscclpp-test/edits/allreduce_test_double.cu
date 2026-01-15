@@ -901,15 +901,11 @@ __global__ void __launch_bounds__(1024) allreduce1(double* buff, double* scratch
     devSndRecvChan.wait();
   }
 }
-
-// it is now sending 1 double (64 bit) rather than 2 int (2 x 32 bit).
-// to achieve that using LLPacket: for the road, cast them as long long int so that 64 bit double acts as 2 int.
-// when you reach the destination: back from long long to double for computation.
 __global__ void __launch_bounds__(1024)
     allreduce2(double* buff, void* scratch, void* putPktBuf, void* getPktBuf, void* result, int rank, int nRanksPerNode,
                int worldSize, size_t nelems) {
   int numPeersPerNode = nRanksPerNode - 1;
-  size_t nPkts = nelems;  // 1 double per packet
+  size_t nPkts = nelems / 2;  // 2 doubles per packet (128-bit)
   size_t pktBytes = nPkts * sizeof(mscclpp::LLPacket);
 
   // Channel to a local peer
@@ -923,8 +919,10 @@ __global__ void __launch_bounds__(1024)
   // Flag for packets. Initially 1
   uint32_t flag = (uint32_t)globalFlag;
 
-  double* src = buff;
-  double* res = (double*)result;
+  // CHANGED: int2* -> double2* (128-bit load: 2 doubles)
+  double2* src = (double2*)buff;
+  double2* res = (double2*)result;
+
   // double buffering
   size_t scratchBaseIndex = (flag & 1) ? 0 : nPkts * max(numPeersPerNode, 1);
   size_t scratchOffset = scratchBaseIndex * sizeof(mscclpp::LLPacket);
@@ -936,41 +934,50 @@ __global__ void __launch_bounds__(1024)
   if (numPeersPerNode == 0) {
     // One rank per node: write data to putPktBuf directly
     for (size_t idx = threadIdx.x + blockIdx.x * blockDim.x; idx < nPkts; idx += blockDim.x * gridDim.x) {
-      uint64_t data = __double_as_longlong(src[idx]);
-      // mask with 0xFFFFFFFF: the lower 32 bits, shift by 32: higher 32 bits
-      putPktPtr[idx].write((uint32_t)(data & 0xFFFFFFFF), (uint32_t)(data >> 32), flag);
+      putPktPtr[idx].write(src[idx].x, src[idx].y, flag);
     }
   } else {
     // Offset of the input data (buff) to read from
+    // CHANGED: sizeof(int) -> sizeof(double)
     size_t srcOffset =
-        ((blockIdx.x % BLOCKS_PER_PEER) * nelems * sizeof(double) / BLOCKS_PER_PEER);  // offset for this block
+        ((blockIdx.x % BLOCKS_PER_PEER) * nelems * sizeof(double) / BLOCKS_PER_PEER);
+    
     // Offset of the peer's scratch buffer (scratch) to write on
     size_t dstOffset = (scratchOffset) +                                                    // double buffering
                        ((memChanIdx < localRank ? localRank - 1 : localRank) * pktBytes) +  // offset for this rank
-                       (srcOffset);  // offset for this block
+                       (srcOffset * 2);  // offset for this block: twice of srcOffset because 2 elems per packet inside scratch logic
+                       
     // Write data to the peer's scratch
+    // CHANGED: sizeof(int) -> sizeof(double)
     memChan.putPackets(dstOffset, srcOffset, nelems / BLOCKS_PER_PEER * sizeof(double), threadIdx.x, blockDim.x, flag);
+
     // Read data from my scratch, reduce data with my buff, and write the result to my putPktBuf or to result
     const bool isSingleNode = (worldSize == nRanksPerNode);
     for (size_t idx = threadIdx.x + blockIdx.x * blockDim.x; idx < nPkts; idx += blockDim.x * gridDim.x) {
-      double sum = 0.0;
+      // CHANGED: int -> double accumulation
+      double x = 0.0;
+      double y = 0.0;
       for (int peerIdx = 0; peerIdx < numPeersPerNode / 2; ++peerIdx) {
-        uint2 data0 = memChan.unpackPacket(scratchBaseIndex + 2 * peerIdx * nPkts + idx, flag); // even peers
-        uint2 data1 = memChan.unpackPacket(scratchBaseIndex + (2 * peerIdx + 1) * nPkts + idx, flag); // odd peers
-        // data0.y: Holds the Upper 32 bits, data0.x: Holds the Lower 32 bits
-        sum += __longlong_as_double(((uint64_t)data0.y << 32) | data0.x);
-        sum += __longlong_as_double(((uint64_t)data1.y << 32) | data1.x);
+        // NOTE: unpackPacket return type must support casting to double, or be auto-converted
+        auto data0 = memChan.unpackPacket(scratchBaseIndex + 2 * peerIdx * nPkts + idx, flag);
+        auto data1 = memChan.unpackPacket(scratchBaseIndex + (2 * peerIdx + 1) * nPkts + idx, flag);
+        
+        // CHANGED: Cast to double
+        x += (double)data0.x;
+        y += (double)data0.y;
+        x += (double)data1.x;
+        y += (double)data1.y;
       }
       if (numPeersPerNode & 1) {
-        uint2 data = memChan.unpackPacket(scratchBaseIndex + (numPeersPerNode - 1) * nPkts + idx, flag); // very last peer
-        sum += __longlong_as_double(((uint64_t)data.y << 32) | data.x);
+        auto data = memChan.unpackPacket(scratchBaseIndex + (numPeersPerNode - 1) * nPkts + idx, flag);
+        x += (double)data.x;
+        y += (double)data.y;
       }
-      double total = src[idx] + sum;
-      if (isSingleNode) { // finalize: my local + accumulated sum
-        res[idx] = total;
+      if (isSingleNode) {
+        res[idx].x = src[idx].x + x;
+        res[idx].y = src[idx].y + y;
       } else {
-        uint64_t totalBits = __double_as_longlong(total);
-        putPktPtr[idx].write((uint32_t)(totalBits & 0xFFFFFFFF), (uint32_t)(totalBits >> 32), flag); // send to the other node in outbox
+        putPktPtr[idx].write(src[idx].x + x, src[idx].y + y, flag);
       }
     }
   }
@@ -996,11 +1003,11 @@ __global__ void __launch_bounds__(1024)
 
     // Read data from my getPktBuf, reduce data with my putPktBuf, and write the result to result
     for (size_t idx = threadIdx.x + blockIdx.x * blockDim.x; idx < nPkts; idx += blockDim.x * nBlocksPhase2) {
-      uint2 data0 = putPktPtr[idx].read(flag);
-      uint2 data1 = getPktPtr[idx].read(flag);
-      double val0 = __longlong_as_double(((uint64_t)data0.y << 32) | data0.x);
-      double val1 = __longlong_as_double(((uint64_t)data1.y << 32) | data1.x);
-      res[idx] = val0 + val1;
+      auto data0 = putPktPtr[idx].read(flag);
+      auto data1 = getPktPtr[idx].read(flag);
+      // CHANGED: Cast to double
+      res[idx].x = (double)data0.x + (double)data1.x;
+      res[idx].y = (double)data0.y + (double)data1.y;
     }
   }
 
