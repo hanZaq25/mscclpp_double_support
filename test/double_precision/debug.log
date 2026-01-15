@@ -1,0 +1,65 @@
+Rank 3: Initializing NCCL...
+Rank 1: Initializing NCCL...
+Rank 0: Initializing NCCL...
+du04:2639071:2639071 [0] MSCCLPP INFO TcpBootstrap : Using eno1:172.20.31.90<0>
+Rank 0: ncclGetUniqueId returned 0
+du04:2639071:2639071 [0] MSCCLPP INFO TcpBootstrap : Using eno1:172.20.31.90<0>
+du04:2639071:2639071 [0] MSCCLPP INFO rank 0 nranks 4 - connecting to 172.20.31.90<46285>
+du04:2639072:2639072 [1] MSCCLPP INFO TcpBootstrap : Using eno1:172.20.31.90<0>
+du04:2639072:2639072 [1] MSCCLPP INFO rank 1 nranks 4 - connecting to 172.20.31.90<46285>
+du04:2639074:2639074 [3] MSCCLPP INFO TcpBootstrap : Using eno1:172.20.31.90<0>
+du04:2639074:2639074 [3] MSCCLPP INFO rank 3 nranks 4 - connecting to 172.20.31.90<46285>
+Rank 2: Initializing NCCL...
+du04:2639073:2639073 [2] MSCCLPP INFO TcpBootstrap : Using eno1:172.20.31.90<0>
+du04:2639073:2639073 [2] MSCCLPP INFO rank 2 nranks 4 - connecting to 172.20.31.90<46285>
+du04:2639072:2639072 [1] MSCCLPP INFO rank 1 - unix socket server started
+du04:2639071:2639071 [0] MSCCLPP INFO rank 0 - unix socket server started
+du04:2639074:2639074 [3] MSCCLPP INFO rank 3 - unix socket server started
+du04:2639073:2639073 [2] MSCCLPP INFO rank 2 - unix socket server started
+du04:2639071:2639173 [0] MSCCLPP INFO NUMA node of ProxyService proxy thread is set to 0
+Rank 0: ncclCommInitRank returned 0 (no error)
+Rank 0: Input verification: 1 (expected 1)
+Rank 0: Calling ncclAllReduce with ncclFloat64 (value=8)...
+du04:2639073:2639073 [2] /home/hzaqout25/mscclpp_double_support/src/proxy.cc:106 MSCCLPP WARN Proxy thread startup taking longer than expected.
+du04:2639074:2639074 [3] /home/hzaqout25/mscclpp_double_support/src/proxy.cc:106 MSCCLPP WARN Proxy thread startup taking longer than expected.
+du04:2639072:2639072 [1] /home/hzaqout25/mscclpp_double_support/src/proxy.cc:106 MSCCLPP WARN Proxy thread startup taking longer than expected.
+du04:2639071:2639071 [0] MSCCLPP INFO tryAccept: Call to try accept returned Resource temporarily unavailable, retrying
+du04:2639072:2639174 [1] MSCCLPP INFO NUMA node of ProxyService proxy thread is set to 0
+Rank 1: ncclCommInitRank returned 0 (no error)
+Rank 1: Input verification: 2 (expected 2)
+Rank 1: Calling ncclAllReduce with ncclFloat64 (value=8)...
+du04:2639074:2639175 [3] MSCCLPP INFO NUMA node of ProxyService proxy thread is set to 1
+Rank 3: ncclCommInitRank returned 0 (no error)
+Rank 3: Input verification: 4 (expected 4)
+Rank 3: Calling ncclAllReduce with ncclFloat64 (value=8)...
+du04:2639073:2639172 [2] MSCCLPP INFO NUMA node of ProxyService proxy thread is set to 1
+Rank 2: ncclCommInitRank returned 0 (no error)
+Rank 2: Input verification: 3 (expected 3)
+Rank 2: Calling ncclAllReduce with ncclFloat64 (value=8)...
+Rank 0: ncclAllReduce returned 0 (no error)
+Rank 1: ncclAllReduce returned 0 (no error)
+Rank 3: ncclAllReduce returned 0 (no error)
+Rank 2: ncclAllReduce returned 0 (no error)
+Rank 3: First 10 output values: 0 0 0 0 0 0 0 0 0 0 
+Rank 3: Result = 0, Expected = 10 ✗ FAIL
+Rank 2: First 10 output values: 0 0 0 0 0 0 0 0 0 0 
+Rank 2: Result = 0, Expected = 10 ✗ FAIL
+Rank 0: First 10 output values: 0 0 0 0 0 0 0 0 0 0 
+Rank 0: Result = 0, Expected = 10 ✗ FAIL
+Rank 1: First 10 output values: 0 0 0 0 0 0 0 0 0 0 
+Rank 1: Result = 0, Expected = 10 ✗ FAIL
+du04:2639074:2639074 [3] MSCCLPP INFO Stopping unix socket server
+du04:2639072:2639072 [1] MSCCLPP INFO Stopping unix socket server
+du04:2639071:2639071 [0] MSCCLPP INFO Stopping unix socket server
+du04:2639073:2639073 [2] MSCCLPP INFO Stopping unix socket server
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[28331,1],0]
+  Exit code:    1
+--------------------------------------------------------------------------

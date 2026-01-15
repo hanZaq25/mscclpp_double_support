@@ -713,8 +713,17 @@ __global__ void __launch_bounds__(512, 1)
                size_t channelScratchOffset, int rank, int nRanksPerNode, int worldSize, size_t nelems) {
   const int nPeer = nRanksPerNode - 1;
   const size_t chanOffset = nPeer * blockIdx.x;
-  // assume (nelems * sizeof(T)) is divisible by (16 * worldSize)
-  const size_t nInt4 = nelems * sizeof(T) / sizeof(int4);
+  
+  // For double (8 bytes), we need to ensure we use int4 (16 bytes) for vectorization
+  // int4 can hold 2 doubles, so nInt4 = nelems / 2
+  size_t nInt4;
+  if constexpr (sizeof(T) == 8) {
+    // For double: nelems doubles / 2 = nInt4 (each int4 holds 2 doubles)
+    nInt4 = nelems / 2;
+  } else {
+    // Original logic for other types
+    nInt4 = nelems * sizeof(T) / sizeof(int4);
+  }
   const size_t nInt4PerRank = nInt4 / worldSize;
   auto memoryChans = memoryChannels + chanOffset;
   auto memoryOutChans = memoryOutChannels + chanOffset;

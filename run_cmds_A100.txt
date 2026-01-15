@@ -1,3 +1,4 @@
+rm -rf ~/.local
 mkdir build
 cd build 
 
@@ -16,3 +17,11 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 # Compile and install
 make -j$(nproc)
 make install
+
+======================
+testing:
+mpirun -np 4 env \
+  LD_PRELOAD=/home/hzaqout25/.local/lib/libmscclpp_nccl.so \
+  MSCCLPP_DEBUG=INFO \
+  MSCCLPP_ALGO_PATTERN=allreduce_allreduce8 \
+  ./test_double_allreduce
